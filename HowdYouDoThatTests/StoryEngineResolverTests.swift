@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 @testable import HowdYouDoThat
 
@@ -81,5 +82,24 @@ struct StoryEngineResolverTests {
         let resolver = StoryEngineResolver(proxyEndpoint: nil)
         let result = await resolver.makeStory(for: sampleRequest)
         #expect(!result.story.isEmpty)
+    }
+
+    @Test("Skips the proxy when cloud fallback is disabled")
+    func skipsCloudWhenDisabled() async {
+        let unreachableProxy = ProxyEngine(
+            endpoint: URL(string: "https://unused.invalid/story")!
+        )
+        let resolver = StoryEngineResolver(tiers: [
+            unreachableProxy,
+            MockEngine(available: true, story: story("Offline", source: .template)),
+        ])
+
+        let result = await resolver.makeStory(
+            for: sampleRequest,
+            allowCloudFallback: false
+        )
+
+        #expect(result.title == "Offline")
+        #expect(result.source == .template)
     }
 }

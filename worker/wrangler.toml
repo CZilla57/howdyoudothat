@@ -2,6 +2,25 @@ name = "howdyoudothat-story-proxy"
 main = "src/index.js"
 compatibility_date = "2025-01-01"
 
+# Protect the paid model calls at two levels. Rate-limit counters are local to
+# each Cloudflare location and eventually consistent, so these are abuse guards
+# rather than exact billing counters.
+[[ratelimits]]
+name = "CLIENT_RATE_LIMITER"
+namespace_id = "24082801"
+
+  [ratelimits.simple]
+  limit = 10
+  period = 60
+
+[[ratelimits]]
+name = "GLOBAL_RATE_LIMITER"
+namespace_id = "24082802"
+
+  [ratelimits.simple]
+  limit = 120
+  period = 60
+
 # Non-secret config. Override the models here without touching code.
 [vars]
 GEMINI_MODEL = "gemini-3.6-flash"

@@ -15,6 +15,8 @@ struct ResultView: View {
     @State private var shareCard: ShareCard?
     @State private var showReportConfirm = false
     @State private var showReportFallback = false
+    @State private var showSaveError = false
+    @State private var saveErrorDetails = "Please try again."
 
     var body: some View {
         ScrollView {
@@ -25,7 +27,9 @@ struct ResultView: View {
                 case .done:
                     if let story = vm.story {
                         storyCard(story)
-                        oneLinersCard(story)
+                        if !story.oneLiners.isEmpty {
+                            oneLinersCard(story)
+                        }
                         if vm.historyCount > 1 { historyPager }
                         actionButtons(story)
                     }
@@ -77,6 +81,11 @@ struct ResultView: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text("Please email \(AppConfig.supportEmail) to report this story.")
+        }
+        .alert("Couldn't save story", isPresented: $showSaveError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(saveErrorDetails)
         }
     }
 
@@ -266,8 +275,14 @@ struct ResultView: View {
     private func save(_ story: BrokenBoneStory) {
         let saved = SavedStory(story: story, request: vm.request)
         modelContext.insert(saved)
-        try? modelContext.save()
-        didSave = true
+        do {
+            try modelContext.save()
+            didSave = true
+        } catch {
+            modelContext.delete(saved)
+            saveErrorDetails = "Your story wasn't saved. \(error.localizedDescription)"
+            showSaveError = true
+        }
     }
 
     private func shareText(_ story: BrokenBoneStory) -> String {

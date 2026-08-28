@@ -74,5 +74,6 @@ struct SelectableChip: View {
             )
         }
         .buttonStyle(.plain)
+        .accessibilityValue(isSelected ? "Selected" : "Not selected")
     }
 }

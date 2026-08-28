@@ -54,11 +54,21 @@ npx wrangler deploy
 
 ## Wire it into the app
 
-Put that URL in the app's `StoryProxyEndpoint` Info.plist key. It's an
-`INFOPLIST_KEY_StoryProxyEndpoint` build setting (currently empty) in
-`HowdYouDoThat.xcodeproj` — set it for Debug/Release and rebuild. The app reads
-it in `AppConfig.proxyEndpoint`; a valid `https` URL flips the proxy tier on
-with no code change.
+Put that URL in the app's `StoryProxyEndpoint` Info.plist key and rebuild. The
+app reads it in `AppConfig.proxyEndpoint`; a valid `https` URL makes the proxy
+tier available when the user permits cloud fallback.
+
+The Worker rejects request bodies over 8 KB, caps individual field lengths,
+and rejects malformed or ungrounded model output. Native Cloudflare bindings
+also enforce two generation limits:
+
+- 10 requests per minute for one connecting client address.
+- 120 requests per minute per Cloudflare location across all clients.
+
+Rate-limit checks fail closed with `503` if their bindings are unavailable.
+Exceeded limits return `429` with `Retry-After: 60`. The counters are
+eventually consistent and local to each Cloudflare location, so they are abuse
+guards rather than exact usage accounting.
 
 ## Local test
 

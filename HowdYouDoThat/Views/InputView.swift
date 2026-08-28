@@ -9,6 +9,9 @@ struct InputView: View {
     /// True when moving to a later step, false when going back. Drives the
     /// direction of the slide transition.
     @State private var goingForward = true
+    @State private var showCloudDisclosure = false
+    @AppStorage("hasSeenCloudDisclosure") private var hasSeenCloudDisclosure = false
+    @AppStorage("allowCloudFallback") private var allowCloudFallback = true
     @FocusState private var focused: Field?
 
     private enum Field { case location, activity, audience }
@@ -32,6 +35,16 @@ struct InputView: View {
         }
         .navigationTitle("How'd You Do That?")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                NavigationLink {
+                    AboutView()
+                } label: {
+                    Image(systemName: "info.circle")
+                }
+                .accessibilityLabel("About, privacy, and support")
+            }
+        }
         .scrollDismissesKeyboard(.interactively)
         .task { vm.prewarm() }
         .sensoryFeedback(.selection, trigger: step)
@@ -40,6 +53,21 @@ struct InputView: View {
             ResultView(vm: vm) {
                 startOver()
             }
+        }
+        .alert("How stories are generated", isPresented: $showCloudDisclosure) {
+            Button("Allow cloud fallback") {
+                hasSeenCloudDisclosure = true
+                allowCloudFallback = true
+                beginGeneration()
+            }
+            Button("Keep it on this device") {
+                hasSeenCloudDisclosure = true
+                allowCloudFallback = false
+                beginGeneration()
+            }
+            Button("Not now", role: .cancel) {}
+        } message: {
+            Text("Apple Intelligence is used when available. If it is unavailable or takes too long, allowing cloud fallback sends your story details through our Cloudflare service to Groq or Google Gemini. Choose on-device only to keep those details on this device; the app will use a classic offline story when needed.")
         }
     }
 
@@ -197,6 +225,15 @@ struct InputView: View {
                 .textFieldStyle(.roundedBorder)
 
             Toggle("Add an absurd cameo", isOn: $vm.request.embellish)
+
+            Toggle("Allow cloud AI fallback", isOn: $allowCloudFallback)
+
+            Text(allowCloudFallback
+                 ? "If on-device generation is unavailable or slow, your story details may be sent to our cloud service."
+                 : "Your story details stay on this device. Classic offline stories are used when on-device AI is unavailable.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -248,6 +285,9 @@ struct InputView: View {
         .padding(.top, 12)
         .padding(.bottom, 4)
         .animation(.spring(response: 0.4, dampingFraction: 0.7), value: step)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Story setup progress")
+        .accessibilityValue("Step \(step + 1) of \(stepCount)")
     }
 
     // MARK: Navigation bar
@@ -323,8 +363,16 @@ struct InputView: View {
     /// Kick off generation and navigate to the result screen.
     private func makeStory() {
         focused = nil
+        guard hasSeenCloudDisclosure else {
+            showCloudDisclosure = true
+            return
+        }
+        beginGeneration()
+    }
+
+    private func beginGeneration() {
         showResult = true
-        Task { await vm.generate() }
+        Task { await vm.generate(allowCloudFallback: allowCloudFallback) }
     }
 
     /// Roll a completely random request and jump straight to a story.

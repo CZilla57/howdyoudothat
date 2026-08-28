@@ -26,4 +26,13 @@ enum AppConfig {
     /// Where "Report this story" emails are sent. Update this to a real inbox
     /// you monitor before shipping — App Review expects a working report path.
     static let supportEmail = "support@howdyoudothat.app"
+
+    /// Public submission URLs are served by the same Worker as the proxy until
+    /// the branded domain is configured.
+    static let privacyPolicyURL = URL(
+        string: "https://howdyoudothat-story-proxy.tradeready.workers.dev/privacy"
+    )!
+    static let supportURL = URL(
+        string: "https://howdyoudothat-story-proxy.tradeready.workers.dev/support"
+    )!
 }

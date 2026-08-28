@@ -78,21 +78,12 @@ struct AppleIntelligenceEngine: StoryEngine {
             throw StoryEngineError.underlying(error.localizedDescription)
         }
 
-        let title = generated.title.trimmed
-        let story = generated.story.trimmed
-        guard !title.isEmpty, !story.isEmpty else {
-            throw StoryEngineError.emptyResult
-        }
-
-        let oneLiners = generated.oneLiners
-            .map { $0.trimmed }
-            .filter { !$0.isEmpty }
-
-        return BrokenBoneStory(
-            title: title,
-            story: story,
-            oneLiners: Array(oneLiners.prefix(3)),
-            source: .appleIntelligence
+        return try StoryOutputValidator.validatedStory(
+            title: generated.title,
+            story: generated.story,
+            oneLiners: generated.oneLiners,
+            source: .appleIntelligence,
+            request: request
         )
     }
 

@@ -65,19 +65,12 @@ struct ProxyEngine: StoryEngine {
             throw StoryEngineError.emptyResult
         }
 
-        let title = body.title?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let story = body.story?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        guard !title.isEmpty, !story.isEmpty else { throw StoryEngineError.emptyResult }
-
-        let oneLiners = (body.oneLiners ?? [])
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
-
-        return BrokenBoneStory(
-            title: title,
-            story: story,
-            oneLiners: Array(oneLiners.prefix(3)),
-            source: body.engineSource
+        return try StoryOutputValidator.validatedStory(
+            title: body.title ?? "",
+            story: body.story ?? "",
+            oneLiners: body.oneLiners ?? [],
+            source: body.engineSource,
+            request: request
         )
     }
 }

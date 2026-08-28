@@ -48,9 +48,10 @@ FEELING LAZY?
 Hit Surprise Me and we'll roll everything for you.
 
 PRIVATE BY DESIGN
-On supported devices, stories are written by Apple's on-device intelligence —
-free, fast, and offline. Saved stories live only on your phone. No account, no
-ads, no tracking.
+On supported devices, stories can be written by Apple's on-device intelligence
+— free, fast, and offline. You choose whether the app may use cloud AI as a
+fallback; keep it off and story details never leave your device. Saved stories
+live only on your phone. No account, no ads, no tracking.
 
 Now go tell it right.
 
@@ -60,11 +61,14 @@ library, and Surprise Me. Go break a leg (responsibly).
 
 ---
 
-## Support URL (REQUIRED — replace)
-https://howdyoudothat.app/support
+## Support URL
+https://howdyoudothat-story-proxy.tradeready.workers.dev/support
 
-## Marketing URL (optional — replace or leave blank)
-https://howdyoudothat.app
+## Privacy Policy URL
+https://howdyoudothat-story-proxy.tradeready.workers.dev/privacy
+
+## Marketing URL (optional)
+Leave blank until the branded domain is configured.
 
 ## Age rating
 Recommended: **12+**
@@ -99,6 +103,9 @@ Secondary: Lifestyle (optional)
   screened before generation and model output is screened before display, with
   a fallback to a fixed on-device template generator. A "Report this story"
   action is available on every result (ellipsis menu, top-right).
+- Before the first generation, the app explains cloud fallback and lets the
+  user allow it or keep all story details on-device. The choice remains
+  available in the final setup step.
 - The higher "spice" setting produces cheeky but PG-13 humor.
 
 ## Export compliance

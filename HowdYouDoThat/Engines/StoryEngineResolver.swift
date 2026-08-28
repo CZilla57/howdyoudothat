@@ -34,8 +34,12 @@ struct StoryEngineResolver: Sendable {
         }
     }
 
-    func makeStory(for request: StoryRequest) async -> BrokenBoneStory {
+    func makeStory(
+        for request: StoryRequest,
+        allowCloudFallback: Bool = true
+    ) async -> BrokenBoneStory {
         for tier in tiers {
+            if !allowCloudFallback, tier is ProxyEngine { continue }
             guard await tier.isAvailable() else { continue }
             do {
                 return try await tier.makeStory(for: request)

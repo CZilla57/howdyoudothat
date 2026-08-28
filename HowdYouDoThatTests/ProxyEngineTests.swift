@@ -58,25 +58,46 @@ struct ProxyEngineTests {
     @Test("Decodes a 200 response and maps the Groq source")
     func decodesGroqSuccess() async throws {
         respond(status: 200, json: """
-        {"title":"T","story":"S","oneLiners":["a","b"],"source":"groq"}
+        {"title":"Wrist Trouble","story":"So I was doing a backflip in Ohio and broke my wrist.","oneLiners":["Ohio won.","The backflip won.","My wrist lost."],"source":"groq"}
         """)
         let engine = ProxyEngine(endpoint: endpoint, session: stubbedSession())
         let result = try await engine.makeStory(for: request)
-        #expect(result.title == "T")
-        #expect(result.story == "S")
-        #expect(result.oneLiners == ["a", "b"])
+        #expect(result.title == "Wrist Trouble")
+        #expect(result.oneLiners.count == 3)
         #expect(result.source == .proxyGroq)
     }
 
-    @Test("Maps the Gemini source and caps one-liners at three")
-    func mapsGeminiAndCapsOneLiners() async throws {
+    @Test("Maps the Gemini source with exactly three one-liners")
+    func mapsGeminiWithThreeOneLiners() async throws {
         respond(status: 200, json: """
-        {"title":"T","story":"S","oneLiners":["1","2","3","4","5"],"source":"gemini"}
+        {"title":"Ohio Wrist","story":"My wrist met the floor during a backflip in Ohio.","oneLiners":["one","two","three"],"source":"gemini"}
         """)
         let engine = ProxyEngine(endpoint: endpoint, session: stubbedSession())
         let result = try await engine.makeStory(for: request)
         #expect(result.source == .proxyGemini)
         #expect(result.oneLiners.count == 3)
+    }
+
+    @Test("Rejects malformed structure that leaked into the story")
+    func rejectsLeakedOneLiners() async {
+        respond(status: 200, json: """
+        {"title":"Ohio Wrist","story":"I broke my wrist doing a backflip in Ohio. OneLiners: nope","oneLiners":["one","two","three"],"source":"groq"}
+        """)
+        let engine = ProxyEngine(endpoint: endpoint, session: stubbedSession())
+        await #expect(throws: StoryEngineError.self) {
+            _ = try await engine.makeStory(for: request)
+        }
+    }
+
+    @Test("Rejects a story that ignores the supplied facts")
+    func rejectsUngroundedStory() async {
+        respond(status: 200, json: """
+        {"title":"Beach Trouble","story":"I hurt my ankle surfing in California.","oneLiners":["one","two","three"],"source":"groq"}
+        """)
+        let engine = ProxyEngine(endpoint: endpoint, session: stubbedSession())
+        await #expect(throws: StoryEngineError.self) {
+            _ = try await engine.makeStory(for: request)
+        }
     }
 
     @Test("Throws on a 204 fallback signal")

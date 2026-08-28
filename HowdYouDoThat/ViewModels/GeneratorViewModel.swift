@@ -15,6 +15,9 @@ final class GeneratorViewModel {
     private(set) var history: [BrokenBoneStory] = []
     /// Which entry in `history` is currently on screen.
     private(set) var historyIndex = 0
+    /// Whether generation may leave the device when the on-device model is
+    /// unavailable or too slow. The user's choice is supplied by InputView.
+    private(set) var allowCloudFallback = true
 
     private let resolver: StoryEngineResolver
 
@@ -63,8 +66,12 @@ final class GeneratorViewModel {
     // MARK: Generation
 
     /// Generate a story from the current request and append it to history.
-    func generate() async {
+    func generate(allowCloudFallback: Bool? = nil) async {
         guard request.isReadyToGenerate else { return }
+
+        if let allowCloudFallback {
+            self.allowCloudFallback = allowCloudFallback
+        }
 
         // Input moderation: don't even generate from disallowed prompts.
         if ContentSafety.isDisallowed(any: [request.location, request.activity, request.audience]) {
@@ -73,7 +80,10 @@ final class GeneratorViewModel {
         }
 
         phase = .generating
-        var result = await resolver.makeStory(for: request)
+        var result = await resolver.makeStory(
+            for: request,
+            allowCloudFallback: self.allowCloudFallback
+        )
 
         // Output moderation: if a tier slipped something through, fall back to
         // the always-clean template engine (which only uses the vetted input).
@@ -104,5 +114,6 @@ final class GeneratorViewModel {
         history = []
         historyIndex = 0
         phase = .idle
+        allowCloudFallback = true
     }
 }
