@@ -22,4 +22,8 @@ enum AppConfig {
 
         return url
     }
+
+    /// Where "Report this story" emails are sent. Update this to a real inbox
+    /// you monitor before shipping — App Review expects a working report path.
+    static let supportEmail = "support@howdyoudothat.app"
 }

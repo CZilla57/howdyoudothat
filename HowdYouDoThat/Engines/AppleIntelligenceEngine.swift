@@ -9,6 +9,11 @@ import FoundationModels
 /// is unavailable (unsupported device, Apple Intelligence off, model still
 /// downloading, etc.) we report `isAvailable() == false` so the resolver
 /// cleanly drops to the proxy and then the template tier.
+///
+/// `FoundationModels` only exists on iOS 26+, so the whole engine is gated on
+/// availability; the resolver only adds it to the chain when the OS supports
+/// it, which keeps the door open to a lower deployment target.
+@available(iOS 26.0, *)
 struct AppleIntelligenceEngine: StoryEngine {
 
     /// The on-device model, resolved once. Reading `.availability` is cheap.
@@ -162,6 +167,7 @@ struct AppleIntelligenceEngine: StoryEngine {
 /// The structured shape we ask the on-device model to fill in. Guided
 /// generation constrains the model to exactly these fields, so we never have
 /// to parse free-form text.
+@available(iOS 26.0, *)
 @Generable
 private struct GeneratedStory {
     @Guide(description: "A short, casual, funny title — how you'd label the story in a text, max 8 words.")

@@ -4,5 +4,7 @@
 <dict>
 	<key>StoryProxyEndpoint</key>
 	<string>https://howdyoudothat-story-proxy.tradeready.workers.dev</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>

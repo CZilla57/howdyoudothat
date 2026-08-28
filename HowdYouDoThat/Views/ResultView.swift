@@ -6,10 +6,13 @@ import SwiftData
 struct ResultView: View {
     @Bindable var vm: GeneratorViewModel
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.openURL) private var openURL
     @State private var didSave = false
     /// The rendered share image for the current story, prepared off the main
     /// interaction so the Share button is instant when tapped.
     @State private var shareCard: ShareCard?
+    @State private var showReportConfirm = false
+    @State private var showReportFallback = false
 
     var body: some View {
         ScrollView {
@@ -42,6 +45,70 @@ struct ResultView: View {
             if let story = vm.story {
                 shareCard = ShareCard.render(for: story)
             }
+        }
+        .toolbar {
+            if vm.story != nil {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Button(role: .destructive) {
+                            showReportConfirm = true
+                        } label: {
+                            Label("Report this story", systemImage: "flag")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                    }
+                }
+            }
+        }
+        .confirmationDialog(
+            "Report this story?",
+            isPresented: $showReportConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Report as inappropriate", role: .destructive) { reportCurrentStory() }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This opens an email so you can tell us what's wrong. We review every report.")
+        }
+        .alert("Couldn't open Mail", isPresented: $showReportFallback) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Please email \(AppConfig.supportEmail) to report this story.")
+        }
+    }
+
+    // MARK: Report
+
+    private func reportCurrentStory() {
+        guard let story = vm.story else { return }
+        let subject = "Reported story: \(story.title)"
+        let body = """
+        I'm reporting this story as inappropriate.
+
+        —— Story ——
+        \(story.title)
+
+        \(story.story)
+
+        \(story.oneLiners.joined(separator: "\n"))
+        ——————————
+
+        What's wrong:\u{0020}
+        """
+        var components = URLComponents()
+        components.scheme = "mailto"
+        components.path = AppConfig.supportEmail
+        components.queryItems = [
+            URLQueryItem(name: "subject", value: subject),
+            URLQueryItem(name: "body", value: body)
+        ]
+        guard let url = components.url else {
+            showReportFallback = true
+            return
+        }
+        openURL(url) { accepted in
+            if !accepted { showReportFallback = true }
         }
     }
 

@@ -8,11 +8,15 @@ struct StoryEngineResolver: Sendable {
     private let tiers: [any StoryEngine]
 
     init(proxyEndpoint: URL? = AppConfig.proxyEndpoint) {
-        tiers = [
-            AppleIntelligenceEngine(),
-            ProxyEngine(endpoint: proxyEndpoint),
-            TemplateEngine(),
-        ]
+        var chain: [any StoryEngine] = []
+        // The Apple on-device tier only exists on iOS 26+. On older systems the
+        // chain simply starts at the proxy, then the always-available template.
+        if #available(iOS 26.0, *) {
+            chain.append(AppleIntelligenceEngine())
+        }
+        chain.append(ProxyEngine(endpoint: proxyEndpoint))
+        chain.append(TemplateEngine())
+        tiers = chain
     }
 
     /// Init used by tests / previews to inject specific engines.

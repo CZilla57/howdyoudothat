@@ -59,8 +59,23 @@ final class GeneratorViewModel {
     /// Generate a story from the current request and append it to history.
     func generate() async {
         guard request.isReadyToGenerate else { return }
+
+        // Input moderation: don't even generate from disallowed prompts.
+        if ContentSafety.isDisallowed(any: [request.location, request.activity, request.audience]) {
+            phase = .failed("Let's keep it PG-13 — try rewording that and give it another go.")
+            return
+        }
+
         phase = .generating
-        let result = await resolver.makeStory(for: request)
+        var result = await resolver.makeStory(for: request)
+
+        // Output moderation: if a tier slipped something through, fall back to
+        // the always-clean template engine (which only uses the vetted input).
+        if ContentSafety.isDisallowed(any: [result.title, result.story] + result.oneLiners) {
+            var rng = SystemRandomNumberGenerator()
+            result = TemplateEngine.build(from: request, using: &rng)
+        }
+
         history.append(result)
         historyIndex = history.count - 1
         phase = .done
