@@ -29,6 +29,16 @@ struct AppleIntelligenceEngine: StoryEngine {
         model.availability == .available
     }
 
+    /// Load the model into memory ahead of the first real request. The first
+    /// on-device inference after launch is a cold start that can exceed
+    /// `responseTimeout` and fall through to the cloud tier; calling this while
+    /// the user is still filling out the form warms it up in the background so
+    /// the first "Make my story" is fast.
+    func prewarm() {
+        guard model.availability == .available else { return }
+        LanguageModelSession(model: model).prewarm()
+    }
+
     func makeStory(for request: StoryRequest) async throws -> BrokenBoneStory {
         // Guard again in case availability changed since the resolver checked.
         guard model.availability == .available else {

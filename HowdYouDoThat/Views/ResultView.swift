@@ -5,6 +5,8 @@ import SwiftData
 /// save to the library, and share.
 struct ResultView: View {
     @Bindable var vm: GeneratorViewModel
+    /// Pops back to a fresh first step. Provided by the presenting InputView.
+    var onStartOver: () -> Void = {}
     @Environment(\.modelContext) private var modelContext
     @Environment(\.openURL) private var openURL
     @State private var didSave = false
@@ -246,6 +248,15 @@ struct ResultView: View {
                     .buttonStyle(.bordered)
                 }
             }
+
+            Button(action: onStartOver) {
+                Label("Start a new story", systemImage: "arrow.counterclockwise")
+                    .font(.subheadline.weight(.medium))
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderless)
+            .tint(.secondary)
+            .padding(.top, 4)
         }
         .controlSize(.large)
     }

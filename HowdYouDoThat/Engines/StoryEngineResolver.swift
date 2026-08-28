@@ -24,6 +24,16 @@ struct StoryEngineResolver: Sendable {
         self.tiers = tiers
     }
 
+    /// Warm up the on-device model (if present) so the first generation isn't a
+    /// slow cold start. Safe to call repeatedly and a no-op on older systems.
+    func prewarm() {
+        if #available(iOS 26.0, *) {
+            for tier in tiers {
+                (tier as? AppleIntelligenceEngine)?.prewarm()
+            }
+        }
+    }
+
     func makeStory(for request: StoryRequest) async -> BrokenBoneStory {
         for tier in tiers {
             guard await tier.isAvailable() else { continue }

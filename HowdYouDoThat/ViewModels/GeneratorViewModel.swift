@@ -31,6 +31,12 @@ final class GeneratorViewModel {
 
     var isGenerating: Bool { phase == .generating }
 
+    /// Warm up the on-device model in the background (call when the input screen
+    /// appears) so the first generation doesn't cold-start into the timeout.
+    func prewarm() {
+        resolver.prewarm()
+    }
+
     /// The story currently being shown — the entry `historyIndex` points at.
     var story: BrokenBoneStory? {
         history.indices.contains(historyIndex) ? history[historyIndex] : nil

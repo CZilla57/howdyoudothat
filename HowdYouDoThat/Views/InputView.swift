@@ -33,10 +33,25 @@ struct InputView: View {
         .navigationTitle("How'd You Do That?")
         .navigationBarTitleDisplayMode(.inline)
         .scrollDismissesKeyboard(.interactively)
+        .task { vm.prewarm() }
         .sensoryFeedback(.selection, trigger: step)
         .sensoryFeedback(.selection, trigger: vm.request.bones)
         .navigationDestination(isPresented: $showResult) {
-            ResultView(vm: vm)
+            ResultView(vm: vm) {
+                startOver()
+            }
+        }
+    }
+
+    /// Pop back to the first step with a clean slate — the "Start over" action
+    /// on the result screen.
+    private func startOver() {
+        showResult = false
+        vm.startOver()
+        focused = nil
+        goingForward = false
+        withAnimation(.spring(response: 0.45, dampingFraction: 0.8)) {
+            step = 0
         }
     }
 
