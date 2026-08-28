@@ -1,0 +1,13 @@
+{
+  "name": "howdyoudothat-story-proxy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cloudflare Worker that races Gemini then Groq to write broken-bone stories for the How'd You Do That? iOS app.",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^3.90.0"
+  }
+}

@@ -1,0 +1,30 @@
+# macOS
+.DS_Store
+
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+*.xcscmblueprint
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Xcode user-specific
+xcuserdata/
+*.xccheckout
+*.xcuserdatad/
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# Cloudflare Worker / Node
+worker/node_modules/
+node_modules/
+.wrangler/
+worker/.dev.vars
+.env
+.env.local

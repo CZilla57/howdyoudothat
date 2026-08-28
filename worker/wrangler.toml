@@ -1,0 +1,13 @@
+name = "howdyoudothat-story-proxy"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+# Non-secret config. Override the models here without touching code.
+[vars]
+GEMINI_MODEL = "gemini-3.6-flash"
+GROQ_MODEL = "openai/gpt-oss-120b"
+ALLOWED_ORIGIN = "*"
+
+# Secrets are NOT stored here. Set them with:
+#   wrangler secret put GEMINI_API_KEY
+#   wrangler secret put GROQ_API_KEY
